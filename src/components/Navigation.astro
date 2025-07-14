@@ -1,0 +1,185 @@
+---
+---
+
+<nav class="bg-white shadow-sm border-b mb-8">
+  <div class="container mx-auto px-4">
+    <div class="flex items-center justify-between h-16">
+      <div class="flex items-center space-x-8">
+        <button 
+          id="nav-today" 
+          class="nav-btn px-4 py-2 rounded-lg font-medium transition-colors border border-transparent"
+          data-view="today"
+        >
+          📝 Heute
+        </button>
+        <button 
+          id="nav-history" 
+          class="nav-btn px-4 py-2 rounded-lg font-medium transition-colors border border-transparent"
+          data-view="history"
+        >
+          📊 Historie
+        </button>
+        <button 
+          id="nav-questions" 
+          class="nav-btn px-4 py-2 rounded-lg font-medium transition-colors border border-transparent"
+          data-view="questions"
+        >
+          ⚙️ Fragen
+        </button>
+        <button 
+          id="nav-ai" 
+          class="nav-btn px-4 py-2 rounded-lg font-medium transition-colors border border-transparent"
+          data-view="ai"
+        >
+          🤖 KI-Analyse
+        </button>
+      </div>
+      
+      <div class="flex items-center space-x-4">
+        <button 
+          id="export-btn"
+          class="px-3 py-2 text-slate-600 hover:text-slate-800 transition-colors"
+          title="Daten exportieren"
+        >
+          📤
+        </button>
+        <button 
+          id="import-btn"
+          class="px-3 py-2 text-slate-600 hover:text-slate-800 transition-colors"
+          title="Daten importieren"
+        >
+          📥
+        </button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<script>
+  class Navigation {
+    private currentView = 'today';
+
+    constructor() {
+      this.setupEventListeners();
+      this.setActiveView('today');
+    }
+
+    private setupEventListeners() {
+      // Navigation buttons
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const view = (e.target as HTMLElement).dataset.view!;
+          this.setActiveView(view);
+          this.showView(view);
+        });
+      });
+
+      // Export/Import buttons
+      document.getElementById('export-btn')?.addEventListener('click', () => {
+        this.exportData();
+      });
+
+      document.getElementById('import-btn')?.addEventListener('click', () => {
+        this.importData();
+      });
+    }
+
+    private setActiveView(view: string) {
+      this.currentView = view;
+      
+      // Update button styles
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('bg-blue-100', 'border-blue-300', 'text-blue-800');
+        btn.classList.add('text-slate-600', 'hover:text-slate-800');
+      });
+
+      const activeBtn = document.querySelector(`[data-view="${view}"]`);
+      if (activeBtn) {
+        activeBtn.classList.remove('text-slate-600', 'hover:text-slate-800');
+        activeBtn.classList.add('bg-blue-100', 'border-blue-300', 'text-blue-800');
+      }
+    }
+
+    private showView(view: string) {
+      // Hide all views
+      document.querySelectorAll('[data-view-content]').forEach(el => {
+        el.classList.add('hidden');
+      });
+
+      // Show selected view
+      const viewElement = document.querySelector(`[data-view-content="${view}"]`);
+      if (viewElement) {
+        viewElement.classList.remove('hidden');
+      }
+
+      // Trigger view-specific initialization
+      window.dispatchEvent(new CustomEvent('view-changed', { detail: { view } }));
+    }
+
+    private exportData() {
+      try {
+        const data = (window as any).ReflectionStorage?.exportData();
+        if (!data) {
+          alert('Keine Daten zum Exportieren gefunden.');
+          return;
+        }
+
+        const blob = new Blob([data], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `reflexion-export-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch (e) {
+        console.error('Export error:', e);
+        alert('Fehler beim Exportieren der Daten.');
+      }
+    }
+
+    private importData() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      
+      input.onchange = (e) => {
+        const file = (e.target as HTMLInputElement).files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const data = e.target?.result as string;
+            const success = (window as any).ReflectionStorage?.importData(data);
+            
+            if (success) {
+              alert('Daten erfolgreich importiert!');
+              window.location.reload();
+            } else {
+              alert('Fehler beim Importieren der Daten. Bitte überprüfen Sie das Dateiformat.');
+            }
+          } catch (e) {
+            console.error('Import error:', e);
+            alert('Fehler beim Importieren der Daten.');
+          }
+        };
+        reader.readAsText(file);
+      };
+      
+      input.click();
+    }
+
+    public getCurrentView(): string {
+      return this.currentView;
+    }
+  }
+
+  // Initialize navigation when DOM is loaded
+  if (typeof window !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', () => {
+      (window as any).navigation = new Navigation();
+    });
+  }
+</script> 

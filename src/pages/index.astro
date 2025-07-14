@@ -1,16 +1,325 @@
 ---
-
+import Layout from '../layouts/Layout.astro';
+import Navigation from '../components/Navigation.astro';
+import DailyReflection from '../components/DailyReflection.astro';
+import HistoryView from '../components/HistoryView.astro';
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout title="Tägliche Reflexion - Christ, Vater & Unternehmer">
+  <Navigation />
+  
+  <!-- Today View (Default) -->
+  <div data-view-content="today">
+    <DailyReflection />
+  </div>
+
+  <!-- History View -->
+  <HistoryView />
+
+  <!-- Questions Editor View -->
+  <div data-view-content="questions" class="hidden space-y-6">
+    <div class="bg-white rounded-lg shadow-sm border p-6">
+      <h2 class="text-xl font-semibold text-slate-800 mb-4">⚙️ Fragen verwalten</h2>
+      <p class="text-slate-600 mb-6">
+        Hier kannst du deine Reflexionsfragen anpassen. Jede Kategorie kann beliebig erweitert oder bearbeitet werden.
+      </p>
+      
+      <div id="questions-editor">
+        <!-- Questions editor will be populated by JavaScript -->
+      </div>
+      
+      <div class="flex gap-4 mt-6">
+        <button 
+          id="save-questions-btn"
+          class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+        >
+          ✅ Änderungen speichern
+        </button>
+        <button 
+          id="reset-questions-btn"
+          class="px-6 py-3 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors font-medium"
+        >
+          🔄 Standard wiederherstellen
+        </button>
+        <button 
+          id="add-question-btn"
+          class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+        >
+          ➕ Frage hinzufügen
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Analysis View -->
+  <div data-view-content="ai" class="hidden space-y-6">
+    <div class="bg-white rounded-lg shadow-sm border p-6">
+      <h2 class="text-xl font-semibold text-slate-800 mb-4">🤖 KI-gestützte Analyse</h2>
+      <p class="text-slate-600 mb-6">
+        Lass deine Reflexionen von einer KI analysieren, um Muster zu erkennen und Empfehlungen zu erhalten.
+      </p>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <!-- Analysis Options -->
+        <div class="space-y-4">
+          <h3 class="font-medium text-slate-800">Analysezeitraum auswählen</h3>
+          <select id="analysis-period" class="w-full p-3 border border-slate-300 rounded-lg">
+            <option value="week">Letzte Woche</option>
+            <option value="month">Letzter Monat</option>
+            <option value="quarter">Letztes Quartal</option>
+          </select>
+          
+          <h3 class="font-medium text-slate-800">Schwerpunkte</h3>
+          <div class="space-y-2">
+            <label class="flex items-center gap-2">
+              <input type="checkbox" value="glaube" class="focus-area-checkbox">
+              <span>🙏 Glaube & Spiritualität</span>
+            </label>
+            <label class="flex items-center gap-2">
+              <input type="checkbox" value="familie" class="focus-area-checkbox">
+              <span>👨‍👧‍👦 Familie & Beziehungen</span>
+            </label>
+            <label class="flex items-center gap-2">
+              <input type="checkbox" value="business" class="focus-area-checkbox">
+              <span>💼 Business & Führung</span>
+            </label>
+            <label class="flex items-center gap-2">
+              <input type="checkbox" value="meta" class="focus-area-checkbox">
+              <span>💡 Persönliches Wachstum</span>
+            </label>
+          </div>
+        </div>
+        
+        <!-- Custom Prompt -->
+        <div class="space-y-4">
+          <h3 class="font-medium text-slate-800">Spezielle Fragestellung (Optional)</h3>
+          <textarea 
+            id="custom-prompt"
+            placeholder="z.B. 'Wie kann ich meine Work-Life-Balance verbessern?' oder 'Wo sehe ich Entwicklungspotential in meiner Vaterrolle?'"
+            class="w-full p-3 border border-slate-300 rounded-lg resize-none"
+            rows="4"
+          ></textarea>
+          
+          <div class="bg-yellow-50 border border-yellow-300 text-yellow-800 p-3 rounded-lg text-sm">
+            <strong>Hinweis:</strong> Die KI-Analyse ist derzeit in Vorbereitung. 
+            Diese Funktion wird in einer zukünftigen Version verfügbar sein.
+          </div>
+        </div>
+      </div>
+      
+      <button 
+        id="start-analysis-btn"
+        class="w-full px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium disabled:bg-slate-300 disabled:cursor-not-allowed"
+        disabled
+      >
+        🔍 Analyse starten (Bald verfügbar)
+      </button>
+    </div>
+    
+    <!-- Analysis Results -->
+    <div id="analysis-results" class="hidden bg-white rounded-lg shadow-sm border p-6">
+      <h3 class="text-lg font-semibold text-slate-800 mb-4">📊 Analyse-Ergebnisse</h3>
+      <div id="analysis-content">
+        <!-- Results will be populated here -->
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  // Make storage and questions available globally for components
+  import { ReflectionStorage } from '../utils/storage';
+  import { defaultQuestions, categories } from '../data/defaultQuestions';
+
+  (window as any).ReflectionStorage = ReflectionStorage;
+  (window as any).defaultQuestions = defaultQuestions;
+  (window as any).categories = categories;
+
+  // Questions Editor functionality
+  class QuestionsEditor {
+    private questions = defaultQuestions;
+
+    constructor() {
+      this.setupEventListeners();
+    }
+
+    private setupEventListeners() {
+      document.getElementById('save-questions-btn')?.addEventListener('click', () => {
+        this.saveQuestions();
+      });
+
+      document.getElementById('reset-questions-btn')?.addEventListener('click', () => {
+        this.resetQuestions();
+      });
+
+      document.getElementById('add-question-btn')?.addEventListener('click', () => {
+        this.addQuestion();
+      });
+
+      // Listen for view changes
+      window.addEventListener('view-changed', (e: any) => {
+        if (e.detail.view === 'questions') {
+          this.loadQuestions();
+        }
+      });
+    }
+
+    private loadQuestions() {
+      try {
+        this.questions = ReflectionStorage.getCustomQuestions();
+        this.renderEditor();
+      } catch (e) {
+        console.error('Error loading questions:', e);
+      }
+    }
+
+    private renderEditor() {
+      const container = document.getElementById('questions-editor')!;
+      
+      container.innerHTML = categories.map(category => `
+        <div class="mb-6 p-4 border border-slate-200 rounded-lg">
+          <h3 class="text-lg font-medium text-slate-800 mb-3">
+            ${category.emoji} ${category.name}
+          </h3>
+          <div class="space-y-3">
+            ${this.questions
+              .filter(q => q.category === category.id)
+              .sort((a, b) => a.order - b.order)
+              .map(question => `
+                <div class="flex items-center gap-3">
+                  <input 
+                    type="checkbox" 
+                    ${question.isActive ? 'checked' : ''}
+                    data-question-id="${question.id}"
+                    class="question-active-checkbox"
+                  >
+                  <input 
+                    type="text" 
+                    value="${question.text}"
+                    data-question-id="${question.id}"
+                    class="flex-1 p-2 border border-slate-300 rounded question-text-input"
+                  >
+                  <button 
+                    type="button"
+                    data-question-id="${question.id}"
+                    class="px-3 py-2 text-red-600 hover:bg-red-50 rounded delete-question-btn"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              `).join('')}
+          </div>
+        </div>
+      `).join('');
+
+      // Add event listeners for dynamic elements
+      this.attachDynamicListeners();
+    }
+
+    private attachDynamicListeners() {
+      // Question text changes
+      document.querySelectorAll('.question-text-input').forEach(input => {
+        input.addEventListener('change', (e) => {
+          const target = e.target as HTMLInputElement;
+          const questionId = target.dataset.questionId!;
+          const question = this.questions.find(q => q.id === questionId);
+          if (question) {
+            question.text = target.value;
+          }
+        });
+      });
+
+      // Question active/inactive
+      document.querySelectorAll('.question-active-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', (e) => {
+          const target = e.target as HTMLInputElement;
+          const questionId = target.dataset.questionId!;
+          const question = this.questions.find(q => q.id === questionId);
+          if (question) {
+            question.isActive = target.checked;
+          }
+        });
+      });
+
+      // Delete question
+      document.querySelectorAll('.delete-question-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const target = e.target as HTMLElement;
+          const questionId = target.dataset.questionId!;
+          this.deleteQuestion(questionId);
+        });
+      });
+    }
+
+    private deleteQuestion(questionId: string) {
+      if (confirm('Diese Frage wirklich löschen?')) {
+        this.questions = this.questions.filter(q => q.id !== questionId);
+        this.renderEditor();
+      }
+    }
+
+    private addQuestion() {
+      const category = prompt('Kategorie auswählen (glaube, familie, business, meta):');
+      if (!category || !['glaube', 'familie', 'business', 'meta'].includes(category)) {
+        alert('Ungültige Kategorie. Bitte verwende: glaube, familie, business oder meta');
+        return;
+      }
+
+      const text = prompt('Fragentext eingeben:');
+      if (!text?.trim()) return;
+
+      const categoryQuestions = this.questions.filter(q => q.category === category);
+      const maxOrder = Math.max(...categoryQuestions.map(q => q.order), 0);
+
+      const newQuestion = {
+        id: `${category}-${Date.now()}`,
+        text: text.trim(),
+        category: category as any,
+        order: maxOrder + 1,
+        isActive: true
+      };
+
+      this.questions.push(newQuestion);
+      this.renderEditor();
+    }
+
+    private saveQuestions() {
+      try {
+        ReflectionStorage.saveCustomQuestions(this.questions);
+        
+        // Show success feedback
+        const btn = document.getElementById('save-questions-btn');
+        const originalText = btn?.textContent;
+        if (btn) {
+          btn.textContent = '✅ Gespeichert';
+          btn.classList.add('bg-green-600');
+          btn.classList.remove('bg-blue-600');
+          
+          setTimeout(() => {
+            btn.textContent = originalText;
+            btn.classList.remove('bg-green-600');
+            btn.classList.add('bg-blue-600');
+          }, 2000);
+        }
+      } catch (e) {
+        console.error('Error saving questions:', e);
+        alert('Fehler beim Speichern der Fragen.');
+      }
+    }
+
+    private resetQuestions() {
+      if (confirm('Alle Fragen auf Standard zurücksetzen? Diese Aktion kann nicht rückgängig gemacht werden.')) {
+        ReflectionStorage.resetToDefaultQuestions();
+        this.questions = defaultQuestions;
+        this.renderEditor();
+      }
+    }
+  }
+
+  // Initialize questions editor when DOM is loaded
+  if (typeof window !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', () => {
+      new QuestionsEditor();
+    });
+  }
+</script>

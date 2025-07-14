@@ -1,0 +1,285 @@
+---
+import { categories } from '../data/defaultQuestions';
+---
+
+<div id="daily-reflection" class="space-y-8">
+  <!-- Progress Stats -->
+  <div class="bg-white rounded-lg shadow-sm border p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl font-semibold text-slate-800">📈 Mein Fortschritt</h2>
+      <div id="today-date" class="text-slate-600 font-medium"></div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="text-center p-4 bg-blue-50 rounded-lg">
+        <div id="streak-count" class="text-2xl font-bold text-blue-600">0</div>
+        <div class="text-sm text-blue-700">Tage Streak</div>
+      </div>
+      <div class="text-center p-4 bg-green-50 rounded-lg">
+        <div id="total-days" class="text-2xl font-bold text-green-600">0</div>
+        <div class="text-sm text-green-700">Tage Gesamt</div>
+      </div>
+      <div class="text-center p-4 bg-orange-50 rounded-lg">
+        <div id="completion-rate" class="text-2xl font-bold text-orange-600">0%</div>
+        <div class="text-sm text-orange-700">Diesen Monat</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reflection Form -->
+  <form id="reflection-form" class="space-y-6">
+    {categories.map(category => (
+      <div class={`bg-white rounded-lg shadow-sm border p-6 ${category.color}`}>
+        <div class="flex items-center gap-3 mb-4">
+          <span class="text-2xl">{category.emoji}</span>
+          <div>
+            <h3 class="text-lg font-semibold">{category.name}</h3>
+            <p class="text-sm opacity-80">{category.description}</p>
+          </div>
+        </div>
+        
+        <div id={`questions-${category.id}`} class="space-y-4">
+          <!-- Questions will be loaded dynamically -->
+        </div>
+      </div>
+    ))}
+
+    <!-- Additional Notes -->
+    <div class="bg-white rounded-lg shadow-sm border p-6">
+      <h3 class="text-lg font-semibold text-slate-800 mb-4">📝 Zusätzliche Gedanken</h3>
+      <textarea 
+        id="daily-notes"
+        placeholder="Weitere Erkenntnisse, Gebetsanliegen oder Gedanken für heute..."
+        class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+        rows="4"
+      ></textarea>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex flex-col sm:flex-row gap-4 sticky bottom-4">
+      <button 
+        type="button" 
+        id="save-draft-btn"
+        class="px-6 py-3 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors font-medium"
+      >
+        💾 Als Entwurf speichern
+      </button>
+      <button 
+        type="submit"
+        class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex-1"
+      >
+        ✅ Reflexion abschließen
+      </button>
+    </div>
+  </form>
+
+  <!-- Success Message -->
+  <div id="success-message" class="hidden bg-green-50 border border-green-300 text-green-800 p-4 rounded-lg">
+    <div class="flex items-center gap-2">
+      <span class="text-xl">🎉</span>
+      <span class="font-medium">Reflexion erfolgreich gespeichert!</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { ReflectionStorage } from '../utils/storage';
+  import { defaultQuestions } from '../data/defaultQuestions';
+  import type { ReflectionResponse } from '../types/reflection';
+
+  class DailyReflectionComponent {
+    private responses: Map<string, string> = new Map();
+    private questions = defaultQuestions;
+
+    constructor() {
+      this.initializeComponent();
+      this.loadTodaysReflection();
+      this.updateStats();
+    }
+
+    private initializeComponent() {
+      // Set today's date
+      const today = new Date().toLocaleDateString('de-DE', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+      document.getElementById('today-date')!.textContent = today;
+
+      // Load custom questions if available
+      try {
+        this.questions = ReflectionStorage.getCustomQuestions();
+      } catch (e) {
+        console.warn('Could not load custom questions, using defaults');
+      }
+
+      // Render questions
+      this.renderQuestions();
+
+      // Setup event listeners
+      this.setupEventListeners();
+    }
+
+    private renderQuestions() {
+      const categories = ['glaube', 'familie', 'business', 'meta'];
+      
+      categories.forEach(categoryId => {
+        const container = document.getElementById(`questions-${categoryId}`);
+        if (!container) return;
+
+        const categoryQuestions = this.questions.filter(q => 
+          q.category === categoryId && q.isActive
+        ).sort((a, b) => a.order - b.order);
+
+        container.innerHTML = categoryQuestions.map(question => `
+          <div class="question-item">
+            <label class="block text-sm font-medium text-slate-700 mb-2">
+              ${question.text}
+            </label>
+            <textarea 
+              data-question-id="${question.id}"
+              placeholder="Deine Antwort..."
+              class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none question-textarea"
+              rows="2"
+            ></textarea>
+          </div>
+        `).join('');
+      });
+    }
+
+    private setupEventListeners() {
+      // Auto-save responses
+      document.addEventListener('change', (e) => {
+        const target = e.target as HTMLTextAreaElement;
+        if (target.matches('.question-textarea')) {
+          const questionId = target.dataset.questionId!;
+          this.responses.set(questionId, target.value);
+        }
+      });
+
+      // Save draft button
+      document.getElementById('save-draft-btn')?.addEventListener('click', () => {
+        this.saveDraft();
+      });
+
+      // Form submission
+      document.getElementById('reflection-form')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        this.saveReflection();
+      });
+    }
+
+    private loadTodaysReflection() {
+      try {
+        const todaysReflection = ReflectionStorage.getTodaysReflection();
+        if (todaysReflection) {
+          // Load previous responses
+          todaysReflection.responses.forEach(response => {
+            this.responses.set(response.questionId, response.answer);
+            
+            const textarea = document.querySelector(`[data-question-id="${response.questionId}"]`) as HTMLTextAreaElement;
+            if (textarea) {
+              textarea.value = response.answer;
+            }
+          });
+
+          // Load notes
+          const notesTextarea = document.getElementById('daily-notes') as HTMLTextAreaElement;
+          if (notesTextarea && todaysReflection.notes) {
+            notesTextarea.value = todaysReflection.notes;
+          }
+        }
+      } catch (e) {
+        console.warn('Could not load today\'s reflection:', e);
+      }
+    }
+
+    private updateStats() {
+      try {
+        const history = ReflectionStorage.getReflectionHistory();
+        
+        document.getElementById('streak-count')!.textContent = history.streak.toString();
+        document.getElementById('total-days')!.textContent = history.totalDays.toString();
+        
+        // Calculate completion rate for current month
+        const currentMonth = new Date().getMonth();
+        const currentYear = new Date().getFullYear();
+        const monthlyReflections = history.reflections.filter(r => {
+          const date = new Date(r.date);
+          return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+        });
+        
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+        const completionRate = Math.round((monthlyReflections.length / daysInMonth) * 100);
+        
+        document.getElementById('completion-rate')!.textContent = `${completionRate}%`;
+      } catch (e) {
+        console.warn('Could not update stats:', e);
+      }
+    }
+
+    private saveDraft() {
+      this.collectResponses();
+      // Show temporary feedback
+      const btn = document.getElementById('save-draft-btn');
+      const originalText = btn?.textContent;
+      if (btn) {
+        btn.textContent = '✅ Gespeichert';
+        setTimeout(() => {
+          btn.textContent = originalText;
+        }, 2000);
+      }
+    }
+
+    private saveReflection() {
+      const responses = this.collectResponses();
+      const notes = (document.getElementById('daily-notes') as HTMLTextAreaElement).value;
+      
+      try {
+        ReflectionStorage.saveTodaysReflection(responses, notes);
+        this.showSuccessMessage();
+        this.updateStats();
+      } catch (e) {
+        console.error('Error saving reflection:', e);
+        alert('Fehler beim Speichern der Reflexion. Bitte versuche es erneut.');
+      }
+    }
+
+    private collectResponses(): ReflectionResponse[] {
+      const responses: ReflectionResponse[] = [];
+      
+      document.querySelectorAll('.question-textarea').forEach(textarea => {
+        const element = textarea as HTMLTextAreaElement;
+        const questionId = element.dataset.questionId!;
+        const answer = element.value.trim();
+        
+        if (answer) {
+          responses.push({
+            questionId,
+            answer,
+            // Could add mood detection logic here
+          });
+        }
+      });
+      
+      return responses;
+    }
+
+    private showSuccessMessage() {
+      const message = document.getElementById('success-message');
+      if (message) {
+        message.classList.remove('hidden');
+        setTimeout(() => {
+          message.classList.add('hidden');
+        }, 5000);
+      }
+    }
+  }
+
+  // Initialize when DOM is loaded
+  if (typeof window !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', () => {
+      new DailyReflectionComponent();
+    });
+  }
+</script> 

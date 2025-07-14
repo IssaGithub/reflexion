@@ -1,0 +1,336 @@
+---
+---
+
+<div data-view-content="history" class="hidden space-y-6">
+  <!-- History Stats -->
+  <div class="bg-white rounded-lg shadow-sm border p-6">
+    <h2 class="text-xl font-semibold text-slate-800 mb-4">📊 Deine Reflexions-Historie</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div class="text-center p-4 bg-blue-50 rounded-lg">
+        <div id="hist-total-days" class="text-2xl font-bold text-blue-600">0</div>
+        <div class="text-sm text-blue-700">Reflexionen insgesamt</div>
+      </div>
+      <div class="text-center p-4 bg-green-50 rounded-lg">
+        <div id="hist-current-streak" class="text-2xl font-bold text-green-600">0</div>
+        <div class="text-sm text-green-700">Aktuelle Serie</div>
+      </div>
+      <div class="text-center p-4 bg-purple-50 rounded-lg">
+        <div id="hist-longest-streak" class="text-2xl font-bold text-purple-600">0</div>
+        <div class="text-sm text-purple-700">Längste Serie</div>
+      </div>
+      <div class="text-center p-4 bg-orange-50 rounded-lg">
+        <div id="hist-avg-per-week" class="text-2xl font-bold text-orange-600">0</div>
+        <div class="text-sm text-orange-700">Ø pro Woche</div>
+      </div>
+    </div>
+
+    <!-- Calendar View -->
+    <div id="reflection-calendar" class="mb-6">
+      <h3 class="text-lg font-medium text-slate-800 mb-3">Reflexions-Kalender</h3>
+      <div class="grid grid-cols-7 gap-1 text-center text-xs text-slate-600 mb-2">
+        <div>Mo</div><div>Di</div><div>Mi</div><div>Do</div><div>Fr</div><div>Sa</div><div>So</div>
+      </div>
+      <div id="calendar-grid" class="grid grid-cols-7 gap-1">
+        <!-- Calendar days will be populated by JavaScript -->
+      </div>
+      <div class="flex items-center gap-4 mt-3 text-xs text-slate-600">
+        <div class="flex items-center gap-1">
+          <div class="w-3 h-3 bg-green-200 rounded"></div>
+          <span>Reflexion vollständig</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <div class="w-3 h-3 bg-yellow-200 rounded"></div>
+          <span>Reflexion teilweise</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <div class="w-3 h-3 bg-slate-200 rounded"></div>
+          <span>Keine Reflexion</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Options -->
+  <div class="bg-white rounded-lg shadow-sm border p-6">
+    <h3 class="text-lg font-semibold text-slate-800 mb-4">🔍 Filter & Suche</h3>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+      <select id="period-filter" class="p-2 border border-slate-300 rounded-lg">
+        <option value="all">Alle Reflexionen</option>
+        <option value="week">Letzte Woche</option>
+        <option value="month">Letzter Monat</option>
+        <option value="quarter">Letztes Quartal</option>
+      </select>
+      
+      <select id="category-filter" class="p-2 border border-slate-300 rounded-lg">
+        <option value="all">Alle Kategorien</option>
+        <option value="glaube">🙏 Glaube</option>
+        <option value="familie">👨‍👧‍👦 Familie</option>
+        <option value="business">💼 Business</option>
+        <option value="meta">💡 Meta</option>
+      </select>
+      
+      <input 
+        type="text" 
+        id="search-text" 
+        placeholder="In Antworten suchen..."
+        class="p-2 border border-slate-300 rounded-lg"
+      >
+    </div>
+  </div>
+
+  <!-- Reflections List -->
+  <div class="bg-white rounded-lg shadow-sm border">
+    <div class="p-6 border-b">
+      <h3 class="text-lg font-semibold text-slate-800">📝 Deine Reflexionen</h3>
+    </div>
+    
+    <div id="reflections-list" class="divide-y divide-slate-200">
+      <!-- Reflections will be populated by JavaScript -->
+    </div>
+    
+    <div id="no-reflections" class="hidden p-8 text-center text-slate-600">
+      <div class="text-4xl mb-2">📔</div>
+      <p>Noch keine Reflexionen vorhanden.</p>
+      <p class="text-sm">Beginne mit deiner ersten täglichen Reflexion!</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  class HistoryView {
+    private reflections: any[] = [];
+    private filteredReflections: any[] = [];
+
+    constructor() {
+      this.setupEventListeners();
+    }
+
+    private setupEventListeners() {
+      // Filter change events
+      document.getElementById('period-filter')?.addEventListener('change', () => {
+        this.applyFilters();
+      });
+
+      document.getElementById('category-filter')?.addEventListener('change', () => {
+        this.applyFilters();
+      });
+
+      document.getElementById('search-text')?.addEventListener('input', () => {
+        this.applyFilters();
+      });
+
+      // Listen for view changes
+      window.addEventListener('view-changed', (e: any) => {
+        if (e.detail.view === 'history') {
+          this.loadHistory();
+        }
+      });
+    }
+
+    private loadHistory() {
+      try {
+        const history = (window as any).ReflectionStorage?.getReflectionHistory();
+        if (!history) return;
+
+        this.reflections = history.reflections;
+        this.updateStats(history);
+        this.renderCalendar();
+        this.applyFilters();
+      } catch (e) {
+        console.error('Error loading history:', e);
+      }
+    }
+
+    private updateStats(history: any) {
+      document.getElementById('hist-total-days')!.textContent = history.totalDays.toString();
+      document.getElementById('hist-current-streak')!.textContent = history.streak.toString();
+      
+      // Calculate longest streak
+      const longestStreak = this.calculateLongestStreak(history.reflections);
+      document.getElementById('hist-longest-streak')!.textContent = longestStreak.toString();
+      
+      // Calculate average per week
+      const avgPerWeek = this.calculateAveragePerWeek(history.reflections);
+      document.getElementById('hist-avg-per-week')!.textContent = avgPerWeek.toFixed(1);
+    }
+
+    private calculateLongestStreak(reflections: any[]): number {
+      if (reflections.length === 0) return 0;
+
+      const sortedDates = reflections
+        .map(r => new Date(r.date))
+        .sort((a, b) => a.getTime() - b.getTime());
+
+      let longestStreak = 1;
+      let currentStreak = 1;
+
+      for (let i = 1; i < sortedDates.length; i++) {
+        const daysDiff = Math.floor(
+          (sortedDates[i].getTime() - sortedDates[i-1].getTime()) / (1000 * 60 * 60 * 24)
+        );
+
+        if (daysDiff === 1) {
+          currentStreak++;
+          longestStreak = Math.max(longestStreak, currentStreak);
+        } else {
+          currentStreak = 1;
+        }
+      }
+
+      return longestStreak;
+    }
+
+    private calculateAveragePerWeek(reflections: any[]): number {
+      if (reflections.length === 0) return 0;
+
+      const weeks = Math.ceil(reflections.length / 7);
+      return reflections.length / Math.max(weeks, 1);
+    }
+
+    private renderCalendar() {
+      const today = new Date();
+      const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+      const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      
+      const reflectionDates = new Set(this.reflections.map(r => r.date));
+      
+      const calendarGrid = document.getElementById('calendar-grid')!;
+      calendarGrid.innerHTML = '';
+
+      // Add empty cells for days before month start
+      const startPadding = (firstDay.getDay() + 6) % 7; // Monday = 0
+      for (let i = 0; i < startPadding; i++) {
+        calendarGrid.appendChild(this.createCalendarDay('', false));
+      }
+
+      // Add days of current month
+      for (let day = 1; day <= lastDay.getDate(); day++) {
+        const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const hasReflection = reflectionDates.has(dateStr);
+        
+        calendarGrid.appendChild(this.createCalendarDay(day.toString(), hasReflection));
+      }
+    }
+
+    private createCalendarDay(text: string, hasReflection: boolean): HTMLElement {
+      const day = document.createElement('div');
+      day.className = `w-8 h-8 flex items-center justify-center text-xs rounded ${
+        hasReflection ? 'bg-green-200 text-green-800' : 'bg-slate-100 text-slate-600'
+      }`;
+      day.textContent = text;
+      return day;
+    }
+
+    private applyFilters() {
+      const periodFilter = (document.getElementById('period-filter') as HTMLSelectElement).value;
+      const categoryFilter = (document.getElementById('category-filter') as HTMLSelectElement).value;
+      const searchText = (document.getElementById('search-text') as HTMLInputElement).value.toLowerCase();
+
+      this.filteredReflections = this.reflections.filter(reflection => {
+        // Period filter
+        if (periodFilter !== 'all') {
+          const reflectionDate = new Date(reflection.date);
+          const today = new Date();
+          const daysDiff = Math.floor((today.getTime() - reflectionDate.getTime()) / (1000 * 60 * 60 * 24));
+          
+          switch (periodFilter) {
+            case 'week': if (daysDiff > 7) return false; break;
+            case 'month': if (daysDiff > 30) return false; break;
+            case 'quarter': if (daysDiff > 90) return false; break;
+          }
+        }
+
+        // Category filter
+        if (categoryFilter !== 'all') {
+          const hasCategory = reflection.responses.some((r: any) => 
+            r.questionId.startsWith(categoryFilter)
+          );
+          if (!hasCategory) return false;
+        }
+
+        // Search text
+        if (searchText) {
+          const hasSearchText = reflection.responses.some((r: any) => 
+            r.answer.toLowerCase().includes(searchText)
+          ) || (reflection.notes && reflection.notes.toLowerCase().includes(searchText));
+          if (!hasSearchText) return false;
+        }
+
+        return true;
+      });
+
+      this.renderReflectionsList();
+    }
+
+    private renderReflectionsList() {
+      const container = document.getElementById('reflections-list')!;
+      const noReflections = document.getElementById('no-reflections')!;
+
+      if (this.filteredReflections.length === 0) {
+        container.innerHTML = '';
+        noReflections.classList.remove('hidden');
+        return;
+      }
+
+      noReflections.classList.add('hidden');
+      
+      container.innerHTML = this.filteredReflections.map(reflection => {
+        const date = new Date(reflection.date).toLocaleDateString('de-DE', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+
+        return `
+          <div class="p-6">
+            <div class="flex items-center justify-between mb-3">
+              <h4 class="font-medium text-slate-800">${date}</h4>
+              <span class="text-sm text-slate-600">${reflection.responses.length} Antworten</span>
+            </div>
+            
+            <div class="space-y-2">
+              ${reflection.responses.slice(0, 2).map((response: any) => `
+                <div class="text-sm">
+                  <span class="text-slate-600">${this.getQuestionText(response.questionId)}:</span>
+                  <span class="text-slate-800">${response.answer}</span>
+                </div>
+              `).join('')}
+              
+              ${reflection.responses.length > 2 ? `
+                <div class="text-sm text-blue-600">
+                  ... und ${reflection.responses.length - 2} weitere Antworten
+                </div>
+              ` : ''}
+            </div>
+
+            ${reflection.notes ? `
+              <div class="mt-3 p-3 bg-slate-50 rounded text-sm">
+                <strong>Notizen:</strong> ${reflection.notes}
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    private getQuestionText(questionId: string): string {
+      const questions = (window as any).defaultQuestions || [];
+      const question = questions.find((q: any) => q.id === questionId);
+      return question ? question.text.substring(0, 50) + '...' : 'Unbekannte Frage';
+    }
+
+    public refresh() {
+      this.loadHistory();
+    }
+  }
+
+  // Initialize when DOM is loaded
+  if (typeof window !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', () => {
+      (window as any).historyView = new HistoryView();
+    });
+  }
+</script> 

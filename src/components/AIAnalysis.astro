@@ -1,0 +1,646 @@
+---
+import AISettings from './AISettings.astro';
+import AISetupGuide from './AISetupGuide.astro';
+---
+
+<div data-view-content="ai" class="hidden space-y-6">
+  <!-- Tab Navigation -->
+  <div class="bg-white rounded-lg shadow-sm border">
+    <div class="border-b border-slate-200">
+      <nav class="flex space-x-8 px-6 py-3">
+        <button id="ai-analysis-tab" class="py-2 px-1 border-b-2 border-purple-500 font-medium text-sm text-purple-600">
+          🤖 KI-Analyse
+        </button>
+        <button id="ai-settings-tab" class="py-2 px-1 border-b-2 border-transparent font-medium text-sm text-slate-500 hover:text-slate-700 hover:border-slate-300">
+          ⚙️ Einstellungen
+        </button>
+        <button id="ai-setup-guide-tab" class="py-2 px-1 border-b-2 border-transparent font-medium text-sm text-slate-500 hover:text-slate-700 hover:border-slate-300">
+          📚 Setup-Anleitung
+        </button>
+      </nav>
+    </div>
+  </div>
+
+  <!-- AI Settings Tab Content -->
+  <div id="ai-settings-content" class="hidden">
+    <AISettings />
+  </div>
+
+  <!-- Setup Guide Tab Content -->
+  <div id="ai-setup-guide-content" class="hidden">
+    <AISetupGuide />
+  </div>
+
+  <!-- Analysis Configuration -->
+  <div id="analysis-configuration" class="bg-white rounded-lg shadow-sm border p-6">
+    <h2 class="text-xl font-semibold text-slate-800 mb-4">🤖 KI-gestützte Analyse</h2>
+    <p class="text-slate-600 mb-6">
+      Lass deine Reflexionen von einer KI analysieren, um Muster zu erkennen und Empfehlungen zu erhalten.
+    </p>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <!-- Analysis Options -->
+      <div class="space-y-4">
+        <h3 class="font-medium text-slate-800">Analysezeitraum auswählen</h3>
+        <select id="analysis-period" class="w-full p-3 border border-slate-300 rounded-lg">
+          <option value="week">Letzte Woche (7 Tage)</option>
+          <option value="month">Letzter Monat (30 Tage)</option>
+          <option value="quarter">Letztes Quartal (90 Tage)</option>
+        </select>
+        
+        <h3 class="font-medium text-slate-800">Schwerpunkte</h3>
+        <div class="space-y-2">
+          <label class="flex items-center gap-2">
+            <input type="checkbox" value="glaube" class="focus-area-checkbox">
+            <span>🙏 Glaube & Spiritualität</span>
+          </label>
+          <label class="flex items-center gap-2">
+            <input type="checkbox" value="familie" class="focus-area-checkbox">
+            <span>👨‍👧‍👦 Familie & Beziehungen</span>
+          </label>
+          <label class="flex items-center gap-2">
+            <input type="checkbox" value="business" class="focus-area-checkbox">
+            <span>💼 Business & Führung</span>
+          </label>
+          <label class="flex items-center gap-2">
+            <input type="checkbox" value="meta" class="focus-area-checkbox">
+            <span>💡 Persönliches Wachstum</span>
+          </label>
+        </div>
+
+        <!-- Data Overview -->
+        <div id="data-overview" class="mt-4 p-3 bg-slate-50 rounded-lg">
+          <h4 class="font-medium text-slate-700 mb-2">📊 Verfügbare Daten</h4>
+          <div class="text-sm text-slate-600">
+            <div>Reflexionen im Zeitraum: <span id="available-reflections">0</span></div>
+            <div>Antworten gesamt: <span id="total-responses">0</span></div>
+            <div>Erste Reflexion: <span id="first-reflection">-</span></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Custom Prompt -->
+      <div class="space-y-4">
+        <h3 class="font-medium text-slate-800">Spezielle Fragestellung (Optional)</h3>
+        <textarea 
+          id="custom-prompt"
+          placeholder="z.B. 'Wie kann ich meine Work-Life-Balance verbessern?' oder 'Wo sehe ich Entwicklungspotential in meiner Vaterrolle?'"
+          class="w-full p-3 border border-slate-300 rounded-lg resize-none"
+          rows="4"
+        ></textarea>
+        
+        <!-- Quick Prompt Templates -->
+        <div>
+          <h4 class="text-sm font-medium text-slate-700 mb-2">Schnelle Vorlagen:</h4>
+          <div class="flex flex-wrap gap-2">
+            <button type="button" class="prompt-template px-3 py-1 text-xs bg-blue-100 text-blue-800 rounded-full hover:bg-blue-200" 
+                    data-prompt="Wie kann ich meine Beziehung zu Gott vertiefen?">
+              Spirituelles Wachstum
+            </button>
+            <button type="button" class="prompt-template px-3 py-1 text-xs bg-green-100 text-green-800 rounded-full hover:bg-green-200"
+                    data-prompt="Wie kann ich ein besserer Vater und Ehemann werden?">
+              Familie stärken
+            </button>
+            <button type="button" class="prompt-template px-3 py-1 text-xs bg-purple-100 text-purple-800 rounded-full hover:bg-purple-200"
+                    data-prompt="Wie kann ich meine Führungsqualitäten als christlicher Unternehmer verbessern?">
+              Führung entwickeln
+            </button>
+            <button type="button" class="prompt-template px-3 py-1 text-xs bg-orange-100 text-orange-800 rounded-full hover:bg-orange-200"
+                    data-prompt="Welche Work-Life-Balance Verbesserungen kann ich umsetzen?">
+              Balance finden
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <button 
+      id="start-analysis-btn"
+      class="w-full px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium disabled:bg-slate-300 disabled:cursor-not-allowed"
+      disabled
+    >
+      🔍 Analyse starten
+    </button>
+
+    <!-- Loading State -->
+    <div id="analysis-loading" class="hidden mt-6 p-6 bg-blue-50 border border-blue-200 rounded-lg">
+      <div class="flex items-center gap-3">
+        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+        <div>
+          <div class="font-medium text-blue-800">KI-Analyse läuft...</div>
+          <div class="text-sm text-blue-600">Dies kann 30-60 Sekunden dauern</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Analysis Results -->
+  <div id="analysis-results" class="hidden bg-white rounded-lg shadow-sm border">
+    <div class="p-6 border-b">
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-slate-800">📊 Analyse-Ergebnisse</h3>
+        <div class="flex gap-2">
+          <button id="save-analysis-btn" class="px-3 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
+            💾 Speichern
+          </button>
+          <button id="export-analysis-btn" class="px-3 py-2 text-sm bg-green-600 text-white rounded hover:bg-green-700">
+            📤 Exportieren
+          </button>
+          <button id="new-analysis-btn" class="px-3 py-2 text-sm bg-slate-600 text-white rounded hover:bg-slate-700">
+            🔄 Neue Analyse
+          </button>
+        </div>
+      </div>
+      <div id="analysis-meta" class="text-sm text-slate-600 mt-2">
+        <!-- Analysis metadata will be populated here -->
+      </div>
+    </div>
+    
+    <div id="analysis-content" class="p-6 space-y-6">
+      <!-- Results will be populated here -->
+    </div>
+  </div>
+
+  <!-- Previous Analyses -->
+  <div id="previous-analyses" class="hidden bg-white rounded-lg shadow-sm border">
+    <div class="p-6 border-b">
+      <h3 class="text-lg font-semibold text-slate-800">📚 Gespeicherte Analysen</h3>
+    </div>
+    <div id="previous-analyses-list" class="divide-y divide-slate-200">
+      <!-- Previous analyses will be populated here -->
+    </div>
+  </div>
+</div>
+
+<script>
+  import { AIService } from '../utils/aiService';
+  import { ReflectionStorage } from '../utils/storage';
+  import type { AIAnalysisPrompt, AIAnalysisResult } from '../types/reflection';
+
+  class AIAnalysisComponent {
+    private currentAnalysis: AIAnalysisResult | null = null;
+    private savedAnalyses: AIAnalysisResult[] = [];
+
+    constructor() {
+      this.setupEventListeners();
+      this.loadSavedAnalyses();
+    }
+
+    private setupEventListeners() {
+      // Period and focus area changes
+      document.getElementById('analysis-period')?.addEventListener('change', () => {
+        this.updateDataOverview();
+        this.updateAnalysisButton();
+      });
+
+      document.querySelectorAll('.focus-area-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', () => {
+          this.updateAnalysisButton();
+        });
+      });
+
+      // Prompt templates
+      document.querySelectorAll('.prompt-template').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const prompt = (e.target as HTMLElement).dataset.prompt;
+          if (prompt) {
+            (document.getElementById('custom-prompt') as HTMLTextAreaElement).value = prompt;
+          }
+        });
+      });
+
+      // Start analysis
+      document.getElementById('start-analysis-btn')?.addEventListener('click', () => {
+        this.startAnalysis();
+      });
+
+      // Result actions
+      document.getElementById('save-analysis-btn')?.addEventListener('click', () => {
+        this.saveCurrentAnalysis();
+      });
+
+      document.getElementById('export-analysis-btn')?.addEventListener('click', () => {
+        this.exportAnalysis();
+      });
+
+      document.getElementById('new-analysis-btn')?.addEventListener('click', () => {
+        this.resetAnalysis();
+      });
+
+      // Listen for AI configuration changes
+      window.addEventListener('ai-configured', () => {
+        this.updateAnalysisButton();
+      });
+
+      window.addEventListener('ai-unconfigured', () => {
+        this.updateAnalysisButton();
+      });
+
+      // Listen for view changes
+      window.addEventListener('view-changed', (e: any) => {
+        if (e.detail.view === 'ai') {
+          this.onViewActivated();
+        }
+      });
+    }
+
+    private onViewActivated() {
+      this.updateDataOverview();
+      this.updateAnalysisButton();
+      this.updateCostEstimation();
+    }
+
+    private updateDataOverview() {
+      const period = (document.getElementById('analysis-period') as HTMLSelectElement).value;
+      const history = ReflectionStorage.getReflectionHistory();
+      
+      const cutoffDate = this.getCutoffDate(period);
+      const relevantReflections = history.reflections.filter(r => 
+        new Date(r.date) >= cutoffDate
+      );
+
+      const totalResponses = relevantReflections.reduce((sum, r) => sum + r.responses.length, 0);
+      const firstReflection = relevantReflections.length > 0 
+        ? new Date(relevantReflections[relevantReflections.length - 1].date).toLocaleDateString('de-DE')
+        : '-';
+
+      document.getElementById('available-reflections')!.textContent = relevantReflections.length.toString();
+      document.getElementById('total-responses')!.textContent = totalResponses.toString();
+      document.getElementById('first-reflection')!.textContent = firstReflection;
+    }
+
+    private updateAnalysisButton() {
+      const btn = document.getElementById('start-analysis-btn') as HTMLButtonElement;
+      const isConfigured = AIService.isConfigured();
+      const hasData = parseInt(document.getElementById('available-reflections')?.textContent || '0') > 0;
+
+      btn.disabled = !isConfigured || !hasData;
+
+      if (!isConfigured) {
+        btn.textContent = '🔐 API-Key erforderlich';
+      } else if (!hasData) {
+        btn.textContent = '📝 Keine Reflexionen im Zeitraum';
+      } else {
+        btn.textContent = '🔍 Analyse starten';
+      }
+    }
+
+    private updateCostEstimation() {
+      const period = (document.getElementById('analysis-period') as HTMLSelectElement).value;
+      const history = ReflectionStorage.getReflectionHistory();
+      const questions = (window as any).defaultQuestions || [];
+      
+      const cutoffDate = this.getCutoffDate(period);
+      const relevantReflections = history.reflections.filter(r => 
+        new Date(r.date) >= cutoffDate
+      );
+
+      if (relevantReflections.length > 0) {
+        // Update cost estimation in settings
+        const aiSettings = (window as any).aiSettings;
+        if (aiSettings) {
+          aiSettings.updateCostEstimationFromExternal(relevantReflections, questions);
+        }
+      }
+    }
+
+    private getCutoffDate(period: string): Date {
+      const now = new Date();
+      switch (period) {
+        case 'week':
+          return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        case 'month':
+          return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        case 'quarter':
+          return new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+        default:
+          return new Date(0);
+      }
+    }
+
+    private async startAnalysis() {
+      const btn = document.getElementById('start-analysis-btn') as HTMLButtonElement;
+      const loading = document.getElementById('analysis-loading')!;
+      
+      // Collect analysis parameters
+      const period = (document.getElementById('analysis-period') as HTMLSelectElement).value as 'week' | 'month' | 'quarter';
+      const customPrompt = (document.getElementById('custom-prompt') as HTMLTextAreaElement).value.trim();
+      
+      const focusAreas: string[] = [];
+      document.querySelectorAll('.focus-area-checkbox:checked').forEach(checkbox => {
+        focusAreas.push((checkbox as HTMLInputElement).value);
+      });
+
+      const analysisPrompt: AIAnalysisPrompt = {
+        period,
+        focusAreas,
+        customPrompt: customPrompt || undefined
+      };
+
+      // Get relevant data
+      const history = ReflectionStorage.getReflectionHistory();
+      const questions = (window as any).defaultQuestions || [];
+      const cutoffDate = this.getCutoffDate(period);
+      const relevantReflections = history.reflections.filter(r => 
+        new Date(r.date) >= cutoffDate
+      );
+
+      // Show loading state
+      btn.disabled = true;
+      loading.classList.remove('hidden');
+      this.hideResults();
+
+      try {
+        const result = await AIService.analyzeReflections(relevantReflections, questions, analysisPrompt);
+        this.currentAnalysis = result;
+        this.displayAnalysisResult(result);
+      } catch (error) {
+        this.showError(error instanceof Error ? error.message : 'Unbekannter Fehler bei der Analyse');
+      } finally {
+        btn.disabled = false;
+        loading.classList.add('hidden');
+      }
+    }
+
+    private displayAnalysisResult(result: AIAnalysisResult) {
+      const resultsDiv = document.getElementById('analysis-results')!;
+      const metaDiv = document.getElementById('analysis-meta')!;
+      const contentDiv = document.getElementById('analysis-content')!;
+
+      // Show metadata
+      metaDiv.innerHTML = `
+        <div class="flex gap-4">
+          <span>📅 ${result.period}</span>
+          <span>⏰ ${new Date(result.createdAt).toLocaleString('de-DE')}</span>
+          <span>🎯 ID: ${result.id.slice(0, 8)}</span>
+        </div>
+      `;
+
+      // Show content
+      contentDiv.innerHTML = `
+        <!-- Summary -->
+        <div class="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+          <h4 class="font-semibold text-blue-800 mb-2">📋 Zusammenfassung</h4>
+          <p class="text-blue-700">${result.summary}</p>
+        </div>
+
+        <!-- Insights -->
+        ${result.insights.length > 0 ? `
+        <div>
+          <h4 class="font-semibold text-slate-800 mb-3">💡 Erkenntnisse & Muster</h4>
+          <ul class="space-y-2">
+            ${result.insights.map(insight => `
+              <li class="flex items-start gap-2">
+                <span class="text-green-600 mt-1">•</span>
+                <span class="text-slate-700">${insight}</span>
+              </li>
+            `).join('')}
+          </ul>
+        </div>
+        ` : ''}
+
+        <!-- Recommendations -->
+        ${result.recommendations.length > 0 ? `
+        <div>
+          <h4 class="font-semibold text-slate-800 mb-3">🎯 Empfehlungen</h4>
+          <ul class="space-y-2">
+            ${result.recommendations.map(rec => `
+              <li class="flex items-start gap-2">
+                <span class="text-blue-600 mt-1">→</span>
+                <span class="text-slate-700">${rec}</span>
+              </li>
+            `).join('')}
+          </ul>
+        </div>
+        ` : ''}
+
+        <!-- Patterns -->
+        ${(result.patterns.positive.length > 0 || result.patterns.concerning.length > 0) ? `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          ${result.patterns.positive.length > 0 ? `
+          <div class="bg-green-50 border border-green-200 p-4 rounded-lg">
+            <h4 class="font-semibold text-green-800 mb-2">✅ Positive Entwicklungen</h4>
+            <ul class="space-y-1">
+              ${result.patterns.positive.map(pattern => `
+                <li class="text-green-700 text-sm">• ${pattern}</li>
+              `).join('')}
+            </ul>
+          </div>
+          ` : ''}
+          
+          ${result.patterns.concerning.length > 0 ? `
+          <div class="bg-orange-50 border border-orange-200 p-4 rounded-lg">
+            <h4 class="font-semibold text-orange-800 mb-2">⚠️ Wachstumsbereiche</h4>
+            <ul class="space-y-1">
+              ${result.patterns.concerning.map(pattern => `
+                <li class="text-orange-700 text-sm">• ${pattern}</li>
+              `).join('')}
+            </ul>
+          </div>
+          ` : ''}
+        </div>
+        ` : ''}
+      `;
+
+      resultsDiv.classList.remove('hidden');
+    }
+
+    private showError(message: string) {
+      const contentDiv = document.getElementById('analysis-content')!;
+      const resultsDiv = document.getElementById('analysis-results')!;
+
+      contentDiv.innerHTML = `
+        <div class="bg-red-50 border border-red-200 p-4 rounded-lg">
+          <h4 class="font-semibold text-red-800 mb-2">❌ Fehler bei der Analyse</h4>
+          <p class="text-red-700">${message}</p>
+          <div class="mt-3 text-sm text-red-600">
+            Mögliche Lösungen:
+            <ul class="list-disc list-inside mt-1 space-y-1">
+              <li>Überprüfen Sie Ihren API-Key</li>
+              <li>Stellen Sie sicher, dass Sie Guthaben haben</li>
+              <li>Versuchen Sie es mit einem kleineren Zeitraum</li>
+              <li>Reduzieren Sie die maximale Token-Anzahl</li>
+            </ul>
+          </div>
+        </div>
+      `;
+
+      resultsDiv.classList.remove('hidden');
+    }
+
+    private hideResults() {
+      document.getElementById('analysis-results')?.classList.add('hidden');
+    }
+
+    private resetAnalysis() {
+      this.currentAnalysis = null;
+      this.hideResults();
+      this.updateAnalysisButton();
+    }
+
+    private saveCurrentAnalysis() {
+      if (!this.currentAnalysis) return;
+
+      this.savedAnalyses.unshift(this.currentAnalysis);
+      
+      // Keep only last 10 analyses
+      if (this.savedAnalyses.length > 10) {
+        this.savedAnalyses = this.savedAnalyses.slice(0, 10);
+      }
+
+      localStorage.setItem('reflexion-saved-analyses', JSON.stringify(this.savedAnalyses));
+      
+      // Show feedback
+      const btn = document.getElementById('save-analysis-btn') as HTMLButtonElement;
+      const originalText = btn.textContent;
+      btn.textContent = '✅ Gespeichert';
+      setTimeout(() => {
+        btn.textContent = originalText;
+      }, 2000);
+
+      this.renderPreviousAnalyses();
+    }
+
+    private exportAnalysis() {
+      if (!this.currentAnalysis) return;
+
+      const exportData = {
+        analysis: this.currentAnalysis,
+        exportedAt: new Date().toISOString()
+      };
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `reflexion-analyse-${this.currentAnalysis.id.slice(0, 8)}-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    private loadSavedAnalyses() {
+      try {
+        const saved = localStorage.getItem('reflexion-saved-analyses');
+        if (saved) {
+          this.savedAnalyses = JSON.parse(saved);
+          this.renderPreviousAnalyses();
+        }
+      } catch (e) {
+        console.warn('Could not load saved analyses:', e);
+      }
+    }
+
+    private renderPreviousAnalyses() {
+      if (this.savedAnalyses.length === 0) {
+        document.getElementById('previous-analyses')?.classList.add('hidden');
+        return;
+      }
+
+      const container = document.getElementById('previous-analyses-list')!;
+      
+      container.innerHTML = this.savedAnalyses.map(analysis => `
+        <div class="p-4">
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="font-medium text-slate-800">${analysis.period}</h4>
+            <div class="text-sm text-slate-600">
+              ${new Date(analysis.createdAt).toLocaleDateString('de-DE')}
+            </div>
+          </div>
+          <p class="text-sm text-slate-600 mb-2">${analysis.summary.substring(0, 150)}...</p>
+          <div class="flex gap-2">
+            <button class="load-analysis px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded hover:bg-blue-200"
+                    data-analysis-id="${analysis.id}">
+              📖 Laden
+            </button>
+            <button class="delete-analysis px-2 py-1 text-xs bg-red-100 text-red-800 rounded hover:bg-red-200"
+                    data-analysis-id="${analysis.id}">
+              🗑️ Löschen
+            </button>
+          </div>
+        </div>
+      `).join('');
+
+      // Add event listeners for buttons
+      container.querySelectorAll('.load-analysis').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const analysisId = (e.target as HTMLElement).dataset.analysisId;
+          const analysis = this.savedAnalyses.find(a => a.id === analysisId);
+          if (analysis) {
+            this.currentAnalysis = analysis;
+            this.displayAnalysisResult(analysis);
+          }
+        });
+      });
+
+      container.querySelectorAll('.delete-analysis').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const analysisId = (e.target as HTMLElement).dataset.analysisId;
+          if (confirm('Diese Analyse löschen?')) {
+            this.savedAnalyses = this.savedAnalyses.filter(a => a.id !== analysisId);
+            localStorage.setItem('reflexion-saved-analyses', JSON.stringify(this.savedAnalyses));
+            this.renderPreviousAnalyses();
+          }
+        });
+      });
+
+      document.getElementById('previous-analyses')?.classList.remove('hidden');
+    }
+  }
+
+  // Tab navigation functionality
+  function initializeTabNavigation() {
+    const analysisTab = document.getElementById('ai-analysis-tab');
+    const settingsTab = document.getElementById('ai-settings-tab');
+    const setupGuideTab = document.getElementById('ai-setup-guide-tab');
+    
+    const analysisContent = document.getElementById('analysis-configuration');
+    const settingsContent = document.getElementById('ai-settings-content');
+    const setupGuideContent = document.getElementById('ai-setup-guide-content');
+
+    function showTab(activeTab: HTMLElement, activeContent: HTMLElement) {
+      // Reset all tabs
+      [analysisTab, settingsTab, setupGuideTab].forEach(tab => {
+        if (tab) {
+          tab.className = tab.className.replace('border-purple-500 text-purple-600', 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300');
+        }
+      });
+
+      // Reset all content
+      [analysisContent, settingsContent, setupGuideContent].forEach(content => {
+        content?.classList.add('hidden');
+      });
+
+      // Show active tab and content
+      activeTab.className = activeTab.className.replace('border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300', 'border-purple-500 text-purple-600');
+      activeContent?.classList.remove('hidden');
+    }
+
+    // Event listeners
+    analysisTab?.addEventListener('click', () => {
+      showTab(analysisTab, analysisContent!);
+    });
+
+    settingsTab?.addEventListener('click', () => {
+      showTab(settingsTab, settingsContent!);
+    });
+
+    setupGuideTab?.addEventListener('click', () => {
+      showTab(setupGuideTab, setupGuideContent!);
+    });
+
+    // Show analysis tab by default
+    if (analysisContent) {
+      analysisContent.id = 'analysis-configuration';
+    }
+  }
+
+  // Initialize when DOM is loaded
+  if (typeof window !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', () => {
+      (window as any).aiAnalysis = new AIAnalysisComponent();
+      initializeTabNavigation();
+    });
+  }
+</script> 

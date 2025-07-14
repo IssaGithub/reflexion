@@ -23,11 +23,13 @@ Eine umfassende Web-Anwendung für tägliche Reflexion als **Christ**, **Vater**
 - **Fragen aktivieren/deaktivieren**: Flexible Auswahl relevanter Fragen
 - **Standard wiederherstellen**: Zurück zu den Original-Fragen
 
-### 🤖 KI-Analyse (Vorbereitung)
+### 🤖 KI-Analyse (✅ Verfügbar)
+- **OpenAI Integration**: Nutzt GPT-4 für intelligente Analyse
 - **Muster erkennen**: Analyse von Reflexions-Trends über Zeit
 - **Persönliche Insights**: Erkenntnisse aus Antworten ableiten
 - **Empfehlungen**: Konkrete Vorschläge für Wachstumsbereiche
 - **Flexible Zeiträume**: Wöchentliche, monatliche oder quartalsweise Analyse
+- **Privacy-First**: API-Key bleibt lokal, maximale Datensicherheit
 
 ### 💾 Datenmanagement
 - **Lokaler Speicher**: Alle Daten bleiben auf Ihrem Gerät
@@ -53,6 +55,14 @@ npm run build
 ```
 
 Die App läuft standardmäßig auf `http://localhost:4321`
+
+### 🤖 KI-Analyse Setup
+
+Für die KI-Analyse benötigen Sie einen OpenAI API-Key:
+1. Erstellen Sie einen Account bei [OpenAI](https://platform.openai.com/api-keys)
+2. Generieren Sie einen API-Key
+3. Geben Sie den Key in der App unter "🤖 KI-Analyse" ein
+4. Detaillierte Anleitung: siehe `KI-INTEGRATION.md`
 
 ### 🌐 GitHub Pages Deployment
 
@@ -163,12 +173,18 @@ Diese App unterstützt Sie dabei:
 
 ## 🤝 Weiterentwicklung
 
-Geplante Features für zukünftige Versionen:
-- 🤖 **KI-Integration**: Automatische Analyse und Insights
-- 📈 **Erweiterte Statistiken**: Detaillierte Auswertungen und Trends  
+### ✅ Verfügbare Features
+- 🤖 **KI-Integration**: OpenAI-basierte Analyse und Insights
+- 📊 **Umfassende Statistiken**: Detaillierte Auswertungen und Trends
+- ⚙️ **Anpassbare Fragen**: Vollständig editierbare Reflexionsfragen
+- 📤 **Export/Import**: Vollständige Datenkontrolle
+
+### 🚀 Geplante Features für zukünftige Versionen
+- 📈 **Erweiterte Trend-Analysen**: Vergleiche zwischen Zeiträumen
 - 🏆 **Zielsetzung**: Definition und Verfolgung persönlicher Ziele
 - 📱 **Mobile App**: Native iOS/Android-Anwendung
 - ☁️ **Cloud-Sync** (optional): Sichere Synchronisation zwischen Geräten
+- 🤖 **Weitere KI-Provider**: Anthropic Claude, lokale KI-Modelle
 
 ## 📄 Lizenz
 

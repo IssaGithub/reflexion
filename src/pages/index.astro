@@ -3,6 +3,8 @@ import Layout from '../layouts/Layout.astro';
 import Navigation from '../components/Navigation.astro';
 import DailyReflection from '../components/DailyReflection.astro';
 import HistoryView from '../components/HistoryView.astro';
+import AISettings from '../components/AISettings.astro';
+import AIAnalysis from '../components/AIAnalysis.astro';
 ---
 
 <Layout title="Tägliche Reflexion - Christ, Vater & Unternehmer">
@@ -51,89 +53,20 @@ import HistoryView from '../components/HistoryView.astro';
     </div>
   </div>
 
-  <!-- AI Analysis View -->
-  <div data-view-content="ai" class="hidden space-y-6">
-    <div class="bg-white rounded-lg shadow-sm border p-6">
-      <h2 class="text-xl font-semibold text-slate-800 mb-4">🤖 KI-gestützte Analyse</h2>
-      <p class="text-slate-600 mb-6">
-        Lass deine Reflexionen von einer KI analysieren, um Muster zu erkennen und Empfehlungen zu erhalten.
-      </p>
-      
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <!-- Analysis Options -->
-        <div class="space-y-4">
-          <h3 class="font-medium text-slate-800">Analysezeitraum auswählen</h3>
-          <select id="analysis-period" class="w-full p-3 border border-slate-300 rounded-lg">
-            <option value="week">Letzte Woche</option>
-            <option value="month">Letzter Monat</option>
-            <option value="quarter">Letztes Quartal</option>
-          </select>
-          
-          <h3 class="font-medium text-slate-800">Schwerpunkte</h3>
-          <div class="space-y-2">
-            <label class="flex items-center gap-2">
-              <input type="checkbox" value="glaube" class="focus-area-checkbox">
-              <span>🙏 Glaube & Spiritualität</span>
-            </label>
-            <label class="flex items-center gap-2">
-              <input type="checkbox" value="familie" class="focus-area-checkbox">
-              <span>👨‍👧‍👦 Familie & Beziehungen</span>
-            </label>
-            <label class="flex items-center gap-2">
-              <input type="checkbox" value="business" class="focus-area-checkbox">
-              <span>💼 Business & Führung</span>
-            </label>
-            <label class="flex items-center gap-2">
-              <input type="checkbox" value="meta" class="focus-area-checkbox">
-              <span>💡 Persönliches Wachstum</span>
-            </label>
-          </div>
-        </div>
-        
-        <!-- Custom Prompt -->
-        <div class="space-y-4">
-          <h3 class="font-medium text-slate-800">Spezielle Fragestellung (Optional)</h3>
-          <textarea 
-            id="custom-prompt"
-            placeholder="z.B. 'Wie kann ich meine Work-Life-Balance verbessern?' oder 'Wo sehe ich Entwicklungspotential in meiner Vaterrolle?'"
-            class="w-full p-3 border border-slate-300 rounded-lg resize-none"
-            rows="4"
-          ></textarea>
-          
-          <div class="bg-yellow-50 border border-yellow-300 text-yellow-800 p-3 rounded-lg text-sm">
-            <strong>Hinweis:</strong> Die KI-Analyse ist derzeit in Vorbereitung. 
-            Diese Funktion wird in einer zukünftigen Version verfügbar sein.
-          </div>
-        </div>
-      </div>
-      
-      <button 
-        id="start-analysis-btn"
-        class="w-full px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium disabled:bg-slate-300 disabled:cursor-not-allowed"
-        disabled
-      >
-        🔍 Analyse starten (Bald verfügbar)
-      </button>
-    </div>
-    
-    <!-- Analysis Results -->
-    <div id="analysis-results" class="hidden bg-white rounded-lg shadow-sm border p-6">
-      <h3 class="text-lg font-semibold text-slate-800 mb-4">📊 Analyse-Ergebnisse</h3>
-      <div id="analysis-content">
-        <!-- Results will be populated here -->
-      </div>
-    </div>
-  </div>
+  <!-- AI Analysis View with Settings -->
+  <AIAnalysis />
 </Layout>
 
 <script>
   // Make storage and questions available globally for components
   import { ReflectionStorage } from '../utils/storage';
   import { defaultQuestions, categories } from '../data/defaultQuestions';
+  import { AIService } from '../utils/aiService';
 
   (window as any).ReflectionStorage = ReflectionStorage;
   (window as any).defaultQuestions = defaultQuestions;
   (window as any).categories = categories;
+  (window as any).AIService = AIService;
 
   // Questions Editor functionality
   class QuestionsEditor {
@@ -289,8 +222,8 @@ import HistoryView from '../components/HistoryView.astro';
         
         // Show success feedback
         const btn = document.getElementById('save-questions-btn');
-        const originalText = btn?.textContent;
         if (btn) {
+          const originalText = btn.textContent || '✅ Änderungen speichern';
           btn.textContent = '✅ Gespeichert';
           btn.classList.add('bg-green-600');
           btn.classList.remove('bg-blue-600');

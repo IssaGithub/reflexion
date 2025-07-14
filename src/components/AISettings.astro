@@ -1,0 +1,369 @@
+---
+---
+
+<div id="ai-settings" class="bg-white rounded-lg shadow-sm border p-6 mb-6">
+  <h3 class="text-lg font-semibold text-slate-800 mb-4">🔐 KI-Einstellungen</h3>
+  
+  <div class="space-y-4">
+    <!-- API Key Configuration -->
+    <div>
+      <label for="api-key-input" class="block text-sm font-medium text-slate-700 mb-2">
+        OpenAI API-Key
+      </label>
+      <div class="relative">
+        <input 
+          type="password" 
+          id="api-key-input"
+          placeholder="sk-..."
+          class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pr-12"
+        >
+        <button 
+          type="button"
+          id="toggle-api-key-visibility"
+          class="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+        >
+          👁️
+        </button>
+      </div>
+      <p class="text-xs text-slate-600 mt-1">
+        Ihr API-Key wird nur lokal gespeichert und niemals übertragen.
+        <a href="https://platform.openai.com/api-keys" target="_blank" class="text-blue-600 hover:underline">
+          API-Key bei OpenAI erstellen →
+        </a>
+      </p>
+    </div>
+
+    <!-- Model Selection -->
+    <div>
+      <label for="model-select" class="block text-sm font-medium text-slate-700 mb-2">
+        KI-Modell
+      </label>
+      <select id="model-select" class="w-full p-3 border border-slate-300 rounded-lg">
+        <option value="gpt-4o-mini">GPT-4o Mini (Empfohlen - kostengünstig)</option>
+        <option value="gpt-4o">GPT-4o (Hohe Qualität)</option>
+        <option value="gpt-4-turbo">GPT-4 Turbo</option>
+        <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Günstig)</option>
+      </select>
+    </div>
+
+    <!-- Max Tokens -->
+    <div>
+      <label for="max-tokens-input" class="block text-sm font-medium text-slate-700 mb-2">
+        Maximale Antwort-Länge
+      </label>
+      <input 
+        type="number" 
+        id="max-tokens-input"
+        min="500"
+        max="4000"
+        step="100"
+        value="2000"
+        class="w-full p-3 border border-slate-300 rounded-lg"
+      >
+      <p class="text-xs text-slate-600 mt-1">
+        Höhere Werte = längere Analysen, aber auch höhere Kosten
+      </p>
+    </div>
+
+    <!-- Connection Status -->
+    <div id="connection-status" class="hidden p-3 rounded-lg">
+      <div class="flex items-center gap-2">
+        <span id="status-icon"></span>
+        <span id="status-text"></span>
+      </div>
+    </div>
+
+    <!-- Cost Estimation -->
+    <div id="cost-estimation" class="hidden bg-blue-50 border border-blue-200 p-3 rounded-lg">
+      <h4 class="font-medium text-blue-800 mb-2">💰 Kostenschätzung</h4>
+      <div class="text-sm text-blue-700">
+        <div>Geschätzte Tokens: <span id="estimated-tokens">-</span></div>
+        <div>Geschätzte Kosten: <span id="estimated-cost">-</span> USD</div>
+        <div class="text-xs text-blue-600 mt-1">
+          *Ungefähre Werte basierend auf aktuellen OpenAI-Preisen
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex gap-3">
+      <button 
+        id="test-connection-btn"
+        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-slate-300 disabled:cursor-not-allowed"
+        disabled
+      >
+        🔗 Verbindung testen
+      </button>
+      <button 
+        id="save-settings-btn"
+        class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-slate-300 disabled:cursor-not-allowed"
+        disabled
+      >
+        ✅ Einstellungen speichern
+      </button>
+      <button 
+        id="clear-settings-btn"
+        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+      >
+        🗑️ Zurücksetzen
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { AIService } from '../utils/aiService';
+
+  class AISettingsComponent {
+    private isVisible = false;
+
+    constructor() {
+      this.loadSettings();
+      this.setupEventListeners();
+    }
+
+    private setupEventListeners() {
+      // API Key input
+      const apiKeyInput = document.getElementById('api-key-input') as HTMLInputElement;
+      apiKeyInput?.addEventListener('input', () => {
+        this.validateAndUpdateButtons();
+      });
+
+      // Toggle API key visibility
+      document.getElementById('toggle-api-key-visibility')?.addEventListener('click', () => {
+        this.toggleApiKeyVisibility();
+      });
+
+      // Model and token changes
+      document.getElementById('model-select')?.addEventListener('change', () => {
+        this.updateCostEstimation();
+      });
+
+      document.getElementById('max-tokens-input')?.addEventListener('input', () => {
+        this.updateCostEstimation();
+      });
+
+      // Test connection
+      document.getElementById('test-connection-btn')?.addEventListener('click', () => {
+        this.testConnection();
+      });
+
+      // Save settings
+      document.getElementById('save-settings-btn')?.addEventListener('click', () => {
+        this.saveSettings();
+      });
+
+      // Clear settings
+      document.getElementById('clear-settings-btn')?.addEventListener('click', () => {
+        this.clearSettings();
+      });
+    }
+
+    private loadSettings() {
+      const settings = AIService.getSettings();
+      
+      const apiKeyInput = document.getElementById('api-key-input') as HTMLInputElement;
+      const modelSelect = document.getElementById('model-select') as HTMLSelectElement;
+      const maxTokensInput = document.getElementById('max-tokens-input') as HTMLInputElement;
+
+      if (settings.apiKey) {
+        apiKeyInput.value = settings.apiKey;
+      }
+      
+      if (settings.model) {
+        modelSelect.value = settings.model;
+      }
+      
+      if (settings.maxTokens) {
+        maxTokensInput.value = settings.maxTokens.toString();
+      }
+
+      this.validateAndUpdateButtons();
+      this.updateCostEstimation();
+    }
+
+    private validateAndUpdateButtons() {
+      const apiKeyInput = document.getElementById('api-key-input') as HTMLInputElement;
+      const testBtn = document.getElementById('test-connection-btn') as HTMLButtonElement;
+      const saveBtn = document.getElementById('save-settings-btn') as HTMLButtonElement;
+
+      const apiKey = apiKeyInput.value.trim();
+      const isValidKey = AIService.validateApiKey(apiKey);
+
+      testBtn.disabled = !isValidKey;
+      saveBtn.disabled = !isValidKey;
+
+      // Show validation feedback
+      if (apiKey && !isValidKey) {
+        apiKeyInput.classList.add('border-red-500');
+        this.showStatus('❌', 'Ungültiger API-Key Format', 'error');
+      } else {
+        apiKeyInput.classList.remove('border-red-500');
+        if (isValidKey) {
+          this.showStatus('✅', 'API-Key Format gültig', 'success');
+        } else {
+          this.hideStatus();
+        }
+      }
+    }
+
+    private toggleApiKeyVisibility() {
+      const apiKeyInput = document.getElementById('api-key-input') as HTMLInputElement;
+      const toggleBtn = document.getElementById('toggle-api-key-visibility') as HTMLButtonElement;
+
+      if (apiKeyInput.type === 'password') {
+        apiKeyInput.type = 'text';
+        toggleBtn.textContent = '🙈';
+      } else {
+        apiKeyInput.type = 'password';
+        toggleBtn.textContent = '👁️';
+      }
+    }
+
+    private async testConnection() {
+      const apiKeyInput = document.getElementById('api-key-input') as HTMLInputElement;
+      const testBtn = document.getElementById('test-connection-btn') as HTMLButtonElement;
+
+      const apiKey = apiKeyInput.value.trim();
+      
+      testBtn.disabled = true;
+      testBtn.textContent = '⏳ Teste...';
+      this.showStatus('⏳', 'Verbindung wird getestet...', 'info');
+
+      try {
+        const isValid = await AIService.testConnection(apiKey);
+        
+        if (isValid) {
+          this.showStatus('✅', 'Verbindung erfolgreich!', 'success');
+        } else {
+          this.showStatus('❌', 'Verbindung fehlgeschlagen', 'error');
+        }
+      } catch (error) {
+        this.showStatus('❌', 'Fehler beim Testen der Verbindung', 'error');
+      } finally {
+        testBtn.disabled = false;
+        testBtn.textContent = '🔗 Verbindung testen';
+      }
+    }
+
+    private saveSettings() {
+      const apiKeyInput = document.getElementById('api-key-input') as HTMLInputElement;
+      const modelSelect = document.getElementById('model-select') as HTMLSelectElement;
+      const maxTokensInput = document.getElementById('max-tokens-input') as HTMLInputElement;
+      const saveBtn = document.getElementById('save-settings-btn') as HTMLButtonElement;
+
+      const settings = {
+        apiKey: apiKeyInput.value.trim(),
+        model: modelSelect.value,
+        maxTokens: parseInt(maxTokensInput.value)
+      };
+
+      try {
+        AIService.saveSettings(settings);
+        
+        // Show success feedback
+        const originalText = saveBtn.textContent;
+        saveBtn.textContent = '✅ Gespeichert!';
+        saveBtn.classList.add('bg-green-600');
+        saveBtn.classList.remove('bg-green-600');
+        
+        this.showStatus('✅', 'Einstellungen gespeichert', 'success');
+
+        setTimeout(() => {
+          saveBtn.textContent = originalText;
+        }, 2000);
+
+        // Notify other components that AI is now available
+        window.dispatchEvent(new CustomEvent('ai-configured'));
+
+      } catch (error) {
+        this.showStatus('❌', 'Fehler beim Speichern', 'error');
+      }
+    }
+
+    private clearSettings() {
+      if (confirm('Alle KI-Einstellungen löschen?')) {
+        localStorage.removeItem('reflexion-ai-settings');
+        
+        // Clear form
+        (document.getElementById('api-key-input') as HTMLInputElement).value = '';
+        (document.getElementById('model-select') as HTMLSelectElement).value = 'gpt-4o-mini';
+        (document.getElementById('max-tokens-input') as HTMLInputElement).value = '2000';
+        
+        this.validateAndUpdateButtons();
+        this.hideStatus();
+        this.showStatus('🗑️', 'Einstellungen zurückgesetzt', 'info');
+
+        // Notify other components
+        window.dispatchEvent(new CustomEvent('ai-unconfigured'));
+      }
+    }
+
+    private updateCostEstimation() {
+      // This will be called from the main AI component when reflections are available
+      try {
+        const historyData = (window as any).ReflectionStorage?.getReflectionHistory();
+        const questions = (window as any).defaultQuestions || [];
+        
+        if (historyData?.reflections?.length > 0) {
+          const estimation = AIService.estimateCost(historyData.reflections, questions);
+          
+          document.getElementById('estimated-tokens')!.textContent = estimation.estimatedTokens.toLocaleString();
+          document.getElementById('estimated-cost')!.textContent = estimation.estimatedCostUSD.toFixed(4);
+          document.getElementById('cost-estimation')?.classList.remove('hidden');
+        }
+      } catch (e) {
+        // Cost estimation not available yet
+      }
+    }
+
+    private showStatus(icon: string, text: string, type: 'success' | 'error' | 'info') {
+      const statusDiv = document.getElementById('connection-status')!;
+      const iconSpan = document.getElementById('status-icon')!;
+      const textSpan = document.getElementById('status-text')!;
+
+      iconSpan.textContent = icon;
+      textSpan.textContent = text;
+
+      // Reset classes
+      statusDiv.className = 'p-3 rounded-lg';
+      
+      switch (type) {
+        case 'success':
+          statusDiv.classList.add('bg-green-50', 'border', 'border-green-200', 'text-green-800');
+          break;
+        case 'error':
+          statusDiv.classList.add('bg-red-50', 'border', 'border-red-200', 'text-red-800');
+          break;
+        case 'info':
+          statusDiv.classList.add('bg-blue-50', 'border', 'border-blue-200', 'text-blue-800');
+          break;
+      }
+
+      statusDiv.classList.remove('hidden');
+    }
+
+    private hideStatus() {
+      document.getElementById('connection-status')?.classList.add('hidden');
+    }
+
+    public updateCostEstimationFromExternal(reflections: any[], questions: any[]) {
+      try {
+        const estimation = AIService.estimateCost(reflections, questions);
+        
+        document.getElementById('estimated-tokens')!.textContent = estimation.estimatedTokens.toLocaleString();
+        document.getElementById('estimated-cost')!.textContent = estimation.estimatedCostUSD.toFixed(4);
+        document.getElementById('cost-estimation')?.classList.remove('hidden');
+      } catch (e) {
+        console.warn('Cost estimation failed:', e);
+      }
+    }
+  }
+
+  // Initialize when DOM is loaded
+  if (typeof window !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', () => {
+      (window as any).aiSettings = new AISettingsComponent();
+    });
+  }
+</script> 

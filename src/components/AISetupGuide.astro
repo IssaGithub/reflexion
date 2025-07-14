@@ -1,0 +1,169 @@
+---
+// AISetupGuide.astro
+---
+
+<div class="bg-white rounded-xl shadow-lg p-6 space-y-6">
+  <div class="flex items-center space-x-3">
+    <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+      <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+    </div>
+    <h2 class="text-xl font-bold text-gray-900">OpenAI API Einrichtung</h2>
+  </div>
+
+  <div class="prose prose-gray max-w-none">
+    <p class="text-gray-600">
+      Folgen Sie diesen Schritten, um die KI-Analyse in Ihrer Reflexions-App zu aktivieren:
+    </p>
+  </div>
+
+  <!-- Schritt 1: OpenAI Account erstellen -->
+  <div class="border-l-4 border-blue-500 pl-4 py-2">
+    <h3 class="font-semibold text-gray-900 mb-2">Schritt 1: OpenAI Account erstellen</h3>
+    <ol class="list-decimal list-inside space-y-2 text-gray-700">
+      <li>Besuchen Sie <a href="https://platform.openai.com" target="_blank" class="text-blue-600 hover:underline">platform.openai.com</a></li>
+      <li>Klicken Sie auf "Sign up" wenn Sie noch keinen Account haben</li>
+      <li>Verifizieren Sie Ihre E-Mail-Adresse und Telefonnummer</li>
+      <li>Loggen Sie sich in Ihr OpenAI Dashboard ein</li>
+    </ol>
+  </div>
+
+  <!-- Schritt 2: API-Schlüssel erstellen -->
+  <div class="border-l-4 border-green-500 pl-4 py-2">
+    <h3 class="font-semibold text-gray-900 mb-2">Schritt 2: API-Schlüssel erstellen</h3>
+    <ol class="list-decimal list-inside space-y-2 text-gray-700">
+      <li>Navigieren Sie zu <a href="https://platform.openai.com/api-keys" target="_blank" class="text-blue-600 hover:underline">API Keys</a> in Ihrem Dashboard</li>
+      <li>Klicken Sie auf "Create new secret key"</li>
+      <li>Geben Sie einen aussagekräftigen Namen ein (z.B. "Reflexions-App")</li>
+      <li>Kopieren Sie den generierten API-Schlüssel sofort (er wird nur einmal angezeigt!)</li>
+      <li>Bewahren Sie den Schlüssel sicher auf</li>
+    </ol>
+    
+    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-3">
+      <div class="flex items-start">
+        <svg class="w-5 h-5 text-yellow-600 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+        </svg>
+        <div>
+          <h4 class="font-medium text-yellow-800">Wichtiger Hinweis</h4>
+          <p class="text-yellow-700 text-sm">Der API-Schlüssel wird nur einmal angezeigt. Kopieren Sie ihn sofort und bewahren Sie ihn sicher auf!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Schritt 3: Guthaben hinzufügen -->
+  <div class="border-l-4 border-purple-500 pl-4 py-2">
+    <h3 class="font-semibold text-gray-900 mb-2">Schritt 3: Guthaben hinzufügen</h3>
+    <ol class="list-decimal list-inside space-y-2 text-gray-700">
+      <li>Gehen Sie zu <a href="https://platform.openai.com/settings/organization/billing" target="_blank" class="text-blue-600 hover:underline">Billing Settings</a></li>
+      <li>Klicken Sie auf "Add to credit balance"</li>
+      <li>Fügen Sie mindestens $5-10 hinzu (reicht für ca. 100-500 Analysen)</li>
+      <li>Konfigurieren Sie optional ein monatliches Ausgabenlimit</li>
+    </ol>
+    
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3">
+      <div class="flex items-start">
+        <svg class="w-5 h-5 text-blue-600 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+        </svg>
+        <div>
+          <h4 class="font-medium text-blue-800">Kostenübersicht</h4>
+          <ul class="text-blue-700 text-sm space-y-1 mt-1">
+            <li>• GPT-4o Mini: ~$0.002-0.01 pro Analyse</li>
+            <li>• GPT-4o: ~$0.03-0.05 pro Analyse</li>
+            <li>• GPT-4 Turbo: ~$0.02-0.04 pro Analyse</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Schritt 4: In der App konfigurieren -->
+  <div class="border-l-4 border-orange-500 pl-4 py-2">
+    <h3 class="font-semibold text-gray-900 mb-2">Schritt 4: In der App konfigurieren</h3>
+    <ol class="list-decimal list-inside space-y-2 text-gray-700">
+      <li>Gehen Sie zum "KI-Analyse" Tab in der App</li>
+      <li>Klicken Sie auf "KI-Einstellungen"</li>
+      <li>Fügen Sie Ihren OpenAI API-Schlüssel ein</li>
+      <li>Wählen Sie Ihr gewünschtes KI-Modell</li>
+      <li>Klicken Sie auf "Verbindung testen"</li>
+      <li>Bei erfolgreichem Test können Sie die KI-Analyse verwenden!</li>
+    </ol>
+  </div>
+
+  <!-- Sicherheitshinweise -->
+  <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+    <div class="flex items-start">
+      <svg class="w-5 h-5 text-red-600 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
+      </svg>
+      <div>
+        <h4 class="font-medium text-red-800">Datenschutz & Sicherheit</h4>
+        <ul class="text-red-700 text-sm space-y-1 mt-1">
+          <li>• Ihr API-Schlüssel wird nur lokal in Ihrem Browser gespeichert</li>
+          <li>• Reflexionsdaten werden direkt an OpenAI gesendet (Ende-zu-Ende)</li>
+          <li>• Teilen Sie Ihren API-Schlüssel niemals mit anderen</li>
+          <li>• Überwachen Sie regelmäßig Ihre OpenAI Nutzung</li>
+          <li>• Löschen Sie den API-Schlüssel bei Bedenken aus den Einstellungen</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Troubleshooting -->
+  <div class="bg-gray-50 rounded-lg p-4">
+    <h3 class="font-semibold text-gray-900 mb-3 flex items-center">
+      <svg class="w-5 h-5 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      Häufige Probleme
+    </h3>
+    <div class="space-y-3 text-sm">
+      <div>
+        <h4 class="font-medium text-gray-800">❌ "Invalid API Key" Fehler</h4>
+        <p class="text-gray-600">Überprüfen Sie, ob der API-Schlüssel korrekt kopiert wurde (keine Leerzeichen am Anfang/Ende)</p>
+      </div>
+      <div>
+        <h4 class="font-medium text-gray-800">❌ "Insufficient Quota" Fehler</h4>
+        <p class="text-gray-600">Ihr OpenAI Guthaben ist aufgebraucht. Fügen Sie Guthaben in den Billing Settings hinzu</p>
+      </div>
+      <div>
+        <h4 class="font-medium text-gray-800">❌ "Rate Limit" Fehler</h4>
+        <p class="text-gray-600">Zu viele Anfragen in kurzer Zeit. Warten Sie einen Moment und versuchen Sie es erneut</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hilfreiche Links -->
+  <div class="border-t pt-4">
+    <h3 class="font-semibold text-gray-900 mb-3">Hilfreiche Links</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+      <a href="https://platform.openai.com/docs/quickstart" target="_blank" class="flex items-center text-blue-600 hover:underline">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+        </svg>
+        OpenAI Quickstart Guide
+      </a>
+      <a href="https://platform.openai.com/usage" target="_blank" class="flex items-center text-blue-600 hover:underline">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+        </svg>
+        API Usage Dashboard
+      </a>
+      <a href="https://platform.openai.com/settings/organization/billing" target="_blank" class="flex items-center text-blue-600 hover:underline">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+        </svg>
+        Billing & Credits
+      </a>
+      <a href="https://help.openai.com/en/" target="_blank" class="flex items-center text-blue-600 hover:underline">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M12 2.196l1.412 4.298 4.298 1.412-4.298 1.412L12 13.616l-1.412-4.298L6.29 7.906l4.298-1.412L12 2.196z"></path>
+        </svg>
+        OpenAI Support
+      </a>
+    </div>
+  </div>
+</div> 
